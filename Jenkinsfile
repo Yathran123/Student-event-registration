@@ -3,15 +3,16 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = '24mis0114/student-event-registration'
+        DOCKER_EXE = 'C:\\Users\\varsh\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe'
     }
 
     stages {
 
-       stage('Build Docker Image') {
-    steps {
-        bat '"C:\\Users\\varsh\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" build -t %DOCKER_IMAGE%:v1 .'
-    }
-}
+        stage('Build Docker Image') {
+            steps {
+                bat "\"%DOCKER_EXE%\" build -t %DOCKER_IMAGE%:v1 ."
+            }
+        }
 
         stage('Push Image to Docker Hub') {
             steps {
@@ -22,8 +23,8 @@ pipeline {
                         passwordVariable: 'DOCKER_PASS'
                     )
                 ]) {
-                    bat 'docker login -u %DOCKER_USER% -p %DOCKER_PASS%'
-                    bat 'docker push %DOCKER_IMAGE%:v1'
+                    bat "\"%DOCKER_EXE%\" login -u %DOCKER_USER% -p %DOCKER_PASS%"
+                    bat "\"%DOCKER_EXE%\" push %DOCKER_IMAGE%:v1"
                 }
             }
         }
@@ -44,8 +45,19 @@ pipeline {
 
         stage('Update Application') {
             steps {
-                bat 'docker build -t %DOCKER_IMAGE%:v2 .'
-                bat 'docker push %DOCKER_IMAGE%:v2'
+                bat "\"%DOCKER_EXE%\" build -t %DOCKER_IMAGE%:v2 ."
+                
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub-credentials',
+                        usernameVariable: 'DOCKER_USER',
+                        passwordVariable: 'DOCKER_PASS'
+                    )
+                ]) {
+                    bat "\"%DOCKER_EXE%\" login -u %DOCKER_USER% -p %DOCKER_PASS%"
+                    bat "\"%DOCKER_EXE%\" push %DOCKER_IMAGE%:v2"
+                }
+
                 bat 'kubectl set image deployment/student-event-deployment student-event-container=%DOCKER_IMAGE%:v2'
             }
         }
