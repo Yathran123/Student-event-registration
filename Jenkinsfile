@@ -4,6 +4,7 @@ pipeline {
     environment {
         DOCKER_IMAGE = '24mis0114/student-event-registration'
         DOCKER_EXE = 'C:\\Users\\varsh\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe'
+        KUBECTL_EXE = 'C:\\Users\\varsh\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\kubectl.exe'
     }
 
     stages {
@@ -31,22 +32,22 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                bat 'kubectl apply -f deployment.yaml'
+                bat "\"%KUBECTL_EXE%\" apply -f deployment.yaml"
             }
         }
 
         stage('Verify Replicas') {
             steps {
-                bat 'kubectl get pods'
-                bat 'kubectl get deployment'
-                bat 'kubectl get service'
+                bat "\"%KUBECTL_EXE%\" get pods"
+                bat "\"%KUBECTL_EXE%\" get deployment"
+                bat "\"%KUBECTL_EXE%\" get service"
             }
         }
 
         stage('Update Application') {
             steps {
                 bat "\"%DOCKER_EXE%\" build -t %DOCKER_IMAGE%:v2 ."
-                
+
                 withCredentials([
                     usernamePassword(
                         credentialsId: 'dockerhub-credentials',
@@ -58,15 +59,15 @@ pipeline {
                     bat "\"%DOCKER_EXE%\" push %DOCKER_IMAGE%:v2"
                 }
 
-                bat 'kubectl set image deployment/student-event-deployment student-event-container=%DOCKER_IMAGE%:v2'
+                bat "\"%KUBECTL_EXE%\" set image deployment/student-event-deployment student-event-container=%DOCKER_IMAGE%:v2"
             }
         }
 
         stage('Verify Updated Application') {
             steps {
-                bat 'kubectl rollout status deployment/student-event-deployment'
-                bat 'kubectl get pods'
-                bat 'kubectl get service'
+                bat "\"%KUBECTL_EXE%\" rollout status deployment/student-event-deployment"
+                bat "\"%KUBECTL_EXE%\" get pods"
+                bat "\"%KUBECTL_EXE%\" get service"
             }
         }
     }
