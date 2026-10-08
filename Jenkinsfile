@@ -7,11 +7,11 @@ pipeline {
 
     stages {
 
-        stage('Build Docker Image') {
-            steps {
-                bat 'docker build -t %DOCKER_IMAGE%:v1 .'
-            }
-        }
+       stage('Build Docker Image') {
+    steps {
+        bat '"C:\\Users\\varsh\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" build -t %DOCKER_IMAGE%:v1 .'
+    }
+}
 
         stage('Push Image to Docker Hub') {
             steps {
