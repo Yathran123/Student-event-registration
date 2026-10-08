@@ -2,17 +2,10 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = '24mis0114/student-event-app'
+        DOCKER_IMAGE = '24mis0114/student-event-registration'
     }
 
     stages {
-
-        stage('Clone Code') {
-            steps {
-                git branch: 'main',
-                    url: 'https://github.com/24mis0114/student-event-app.git'
-            }
-        }
 
         stage('Build Docker Image') {
             steps {
@@ -20,7 +13,7 @@ pipeline {
             }
         }
 
-        stage('Push to Docker Hub') {
+        stage('Push Image to Docker Hub') {
             steps {
                 withCredentials([
                     usernamePassword(
@@ -38,7 +31,6 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 bat 'kubectl apply -f deployment.yaml'
-                bat 'kubectl apply -f service.yaml'
             }
         }
 
